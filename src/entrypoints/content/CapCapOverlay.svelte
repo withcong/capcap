@@ -470,6 +470,29 @@
     return null;
   });
   let spotlightBox = $derived(lockedBox ?? dragBox ?? hoverBox);
+
+  const MENU_OFFSET = 4;
+  const MENU_WIDTH = 148;
+
+  function menuPosition(rect: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }) {
+    const rightEdge = rect.x + rect.width;
+    const topY = rect.y + MENU_OFFSET;
+
+    const fitsRight = rightEdge + MENU_OFFSET + MENU_WIDTH < window.innerWidth;
+
+    const left = fitsRight
+      ? rightEdge + MENU_OFFSET
+      : rightEdge - MENU_WIDTH - MENU_OFFSET;
+
+    return { left, top: topY };
+  }
+
+  let menuPos = $derived.by(() => (lockedBox ? menuPosition(lockedBox) : null));
 </script>
 
 <div
@@ -516,7 +539,7 @@
     {#if !capturing}
       <div
         class="capcap-menu"
-        style={`left:${Math.min(window.innerWidth - 156, Math.max(12, r.x + r.width - 156))}px;top:${Math.min(window.innerHeight - 120, Math.max(12, r.y + 8))}px;`}
+        style={`left:${menuPos?.left}px;top:${menuPos?.top}px;`}
       >
         <button class="capcap-btn" disabled={busy !== null} onclick={onCopy}
           >Copy</button
