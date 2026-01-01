@@ -1,4 +1,9 @@
 export default defineBackground(() => {
+  browser.action.onClicked.addListener(async (tab) => {
+    if (!tab?.id) return;
+    await browser.tabs.sendMessage(tab.id, { type: 'CAPCAP_TOGGLE' });
+  });
+
   browser.commands.onCommand.addListener(async (command) => {
     if (command !== 'capcap-capture') return;
 
