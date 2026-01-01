@@ -518,6 +518,7 @@
     position: fixed;
     inset: 0;
     z-index: 2147483647;
+    --capcap-ease: cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .capcap-overlay {
@@ -526,7 +527,7 @@
     pointer-events: auto;
     cursor: crosshair;
     outline: none;
-    transition: opacity 160ms var(--capcap-ease, cubic-bezier(0.22, 1, 0.36, 1));
+    transition: opacity 160ms var(--capcap-ease);
   }
 
   .capcap-overlay--locked {
@@ -542,45 +543,36 @@
     position: absolute;
     inset: 0;
     background: rgba(0, 0, 0, 0.38);
-    transition: background 180ms
-      var(--capcap-ease, cubic-bezier(0.22, 1, 0.36, 1));
+    transition: background 160ms var(--capcap-ease);
   }
 
-  .capcap-spotlight {
-    position: absolute;
-    border-radius: 8px;
-    transition:
-      left 160ms var(--capcap-ease, cubic-bezier(0.22, 1, 0.36, 1)),
-      top 160ms var(--capcap-ease, cubic-bezier(0.22, 1, 0.36, 1)),
-      width 160ms var(--capcap-ease, cubic-bezier(0.22, 1, 0.36, 1)),
-      height 160ms var(--capcap-ease, cubic-bezier(0.22, 1, 0.36, 1));
-
-    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.38);
-  }
-
-  .capcap-spotlight.no-transition {
-    transition: none;
-  }
-
+  .capcap-spotlight,
   .capcap-frame {
     position: absolute;
     border-radius: 8px;
-    border: 2px solid rgba(255, 255, 255, 0.6);
-    background: rgba(255, 255, 255, 0.04);
     transition:
-      left 160ms var(--capcap-ease, cubic-bezier(0.22, 1, 0.36, 1)),
-      top 160ms var(--capcap-ease, cubic-bezier(0.22, 1, 0.36, 1)),
-      width 160ms var(--capcap-ease, cubic-bezier(0.22, 1, 0.36, 1)),
-      height 160ms var(--capcap-ease, cubic-bezier(0.22, 1, 0.36, 1));
+      left 200ms var(--capcap-ease),
+      top 200ms var(--capcap-ease),
+      width 200ms var(--capcap-ease),
+      height 200ms var(--capcap-ease);
   }
 
-  .capcap-frame.no-transition {
-    transition: none;
+  .capcap-spotlight {
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.38);
+  }
+
+  .capcap-frame {
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.04);
   }
 
   .capcap-frame--locked {
     border-color: rgba(255, 255, 255, 0.92);
     background: rgba(255, 255, 255, 0.06);
+  }
+
+  .no-transition {
+    transition: none !important;
   }
 
   .capcap-menu {
@@ -590,7 +582,6 @@
     border-radius: 12px;
     background: rgba(20, 20, 22, 0.72);
     backdrop-filter: blur(10px) saturate(180%);
-    -webkit-backdrop-filter: blur(10px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.18);
     box-shadow:
       0 4px 12px rgba(0, 0, 0, 0.32),
@@ -599,8 +590,8 @@
     display: grid;
     gap: 6px;
     transition:
-      transform 180ms var(--capcap-ease, cubic-bezier(0.22, 1, 0.36, 1)),
-      opacity 180ms var(--capcap-ease, cubic-bezier(0.22, 1, 0.36, 1));
+      transform 160ms var(--capcap-ease),
+      opacity 160ms var(--capcap-ease);
   }
 
   .capcap-btn {
@@ -618,8 +609,7 @@
       BlinkMacSystemFont,
       'Segoe UI',
       sans-serif;
-    transition: background 160ms
-      var(--capcap-ease, cubic-bezier(0.22, 1, 0.36, 1));
+    transition: background 160ms var(--capcap-ease);
   }
 
   .capcap-btn:hover:enabled {
@@ -629,9 +619,5 @@
   .capcap-btn:disabled {
     opacity: 0.6;
     cursor: default;
-  }
-
-  :global(#capcap-root) {
-    --capcap-ease: cubic-bezier(0.22, 1, 0.36, 1);
   }
 </style>
