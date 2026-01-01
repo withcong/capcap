@@ -31,7 +31,7 @@
   let busy = $state<'copy' | 'save' | null>(null);
   let capturing = $state(false);
 
-  const UI_PADDING = 6;
+  const UI_PADDING = 4;
 
   function clampRect(rect: {
     x: number;
@@ -466,6 +466,7 @@
   {#if spotlightBox}
     <div
       class="capcap-spotlight"
+      class:no-transition={isDragging}
       style={`left:${spotlightBox.x}px;top:${spotlightBox.y}px;width:${spotlightBox.width}px;height:${spotlightBox.height}px;`}
     ></div>
   {:else}
@@ -481,7 +482,7 @@
 
   {#if dragBox}
     <div
-      class="capcap-frame capcap-frame--locked"
+      class="capcap-frame capcap-frame--locked no-transition"
       style={`left:${dragBox.x}px;top:${dragBox.y}px;width:${dragBox.width}px;height:${dragBox.height}px;`}
     ></div>
   {/if}
@@ -557,6 +558,10 @@
     box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.38);
   }
 
+  .capcap-spotlight.no-transition {
+    transition: none;
+  }
+
   .capcap-frame {
     position: absolute;
     border-radius: 8px;
@@ -569,6 +574,10 @@
       height 160ms var(--capcap-ease, cubic-bezier(0.22, 1, 0.36, 1));
   }
 
+  .capcap-frame.no-transition {
+    transition: none;
+  }
+
   .capcap-frame--locked {
     border-color: rgba(255, 255, 255, 0.92);
     background: rgba(255, 255, 255, 0.06);
@@ -579,8 +588,14 @@
     width: 148px;
     padding: 8px;
     border-radius: 12px;
-    background: rgba(20, 20, 22, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(20, 20, 22, 0.72);
+    backdrop-filter: blur(10px) saturate(180%);
+    -webkit-backdrop-filter: blur(10px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow:
+      0 4px 12px rgba(0, 0, 0, 0.32),
+      0 0 0 1px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
     display: grid;
     gap: 6px;
     transition:
