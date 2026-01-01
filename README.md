@@ -1,6 +1,6 @@
 # CapCap
 
-CapCap, Arc-style smart screenshot.
+CapCap is a user-friendly browser screen shooter, which captures page with ease and precision.
 
 - Smart block detection - traverses DOM to find meaningful containers
 - Keyboard shortcut - Cmd/Ctrl+Shift+X to capture, Esc to exit capture
@@ -9,7 +9,6 @@ CapCap, Arc-style smart screenshot.
 - Drag selection - for custom region capture
 - Actions menu - Copy/Save/Exit
 - Works on all URLs - <all_urls> pattern
-- High performance - use snapdom as capture engine
 
 
 Tech Stack：
