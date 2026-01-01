@@ -99,10 +99,23 @@
     return true;
   }
 
+  const MIN_ELEMENT_SIZE = 24;
+  const SEMANTIC_TAGS = new Set([
+    'ARTICLE',
+    'MAIN',
+    'SECTION',
+    'ASIDE',
+    'NAV',
+    'HEADER',
+    'FOOTER',
+  ]);
+  const MEDIA_TAGS = new Set(['IMG', 'PICTURE', 'VIDEO', 'CANVAS', 'SVG']);
+
   function scoreCandidate(el: Element, rect: DOMRect) {
     const area = rect.width * rect.height;
     if (!Number.isFinite(area) || area <= 0) return -Infinity;
-    if (rect.width < 24 || rect.height < 24) return -Infinity;
+    if (rect.width < MIN_ELEMENT_SIZE || rect.height < MIN_ELEMENT_SIZE)
+      return -Infinity;
 
     const viewportArea = window.innerWidth * window.innerHeight;
     const ratio = viewportArea > 0 ? area / viewportArea : 0;
@@ -111,26 +124,14 @@
     const bg = cs.backgroundColor;
     const hasBg = bg !== 'transparent' && bg !== 'rgba(0, 0, 0, 0)';
     const hasBorder =
-      Number.parseFloat(cs.borderTopWidth || '0') > 0 ||
-      Number.parseFloat(cs.borderRightWidth || '0') > 0 ||
-      Number.parseFloat(cs.borderBottomWidth || '0') > 0 ||
-      Number.parseFloat(cs.borderLeftWidth || '0') > 0;
+      Number.parseFloat(cs.borderTopWidth) > 0 ||
+      Number.parseFloat(cs.borderRightWidth) > 0 ||
+      Number.parseFloat(cs.borderBottomWidth) > 0 ||
+      Number.parseFloat(cs.borderLeftWidth) > 0;
 
     const tag = el.tagName;
-    const semanticTags = new Set([
-      'ARTICLE',
-      'MAIN',
-      'SECTION',
-      'ASIDE',
-      'NAV',
-      'HEADER',
-      'FOOTER',
-    ]);
-    const semanticBonus = semanticTags.has(tag) ? 0.35 : 0;
-
-    // Prefer selecting actual media elements (especially <img>) when hovered.
-    const mediaTags = new Set(['IMG', 'PICTURE', 'VIDEO', 'CANVAS', 'SVG']);
-    const mediaBonus = tag === 'IMG' ? 0.9 : mediaTags.has(tag) ? 0.45 : 0;
+    const semanticBonus = SEMANTIC_TAGS.has(tag) ? 0.35 : 0;
+    const mediaBonus = tag === 'IMG' ? 0.9 : MEDIA_TAGS.has(tag) ? 0.45 : 0;
 
     const role = (el.getAttribute('role') || '').toLowerCase();
     const roleBonus = ['main', 'article', 'region', 'dialog'].includes(role)
@@ -155,18 +156,28 @@
   }
 
   function pickMeaningfulContainer(start: Element): Element {
+    if (MEDIA_TAGS.has(start.tagName) && isVisible(start)) {
+      return start;
+    }
+
     let best: Element = start;
     let bestScore = -Infinity;
-
     let cur: Element | null = start;
-    for (let depth = 0; cur && depth < 12; depth++) {
+
+    const MAX_DEPTH = 12;
+    for (let depth = 0; cur && depth < MAX_DEPTH; depth++) {
       if (!isVisible(cur)) {
         cur = cur.parentElement;
         continue;
       }
 
       const rect = cur.getBoundingClientRect();
-      const score = scoreCandidate(cur, rect);
+      let score = scoreCandidate(cur, rect);
+
+      if (depth === 0) {
+        score += 0.8;
+      }
+
       if (score > bestScore) {
         bestScore = score;
         best = cur;
@@ -230,9 +241,9 @@
       const img = new Image();
       img.onload = () => {
         const dpr = window.devicePixelRatio || 1;
-        const canvas = document.createElement('canvas');
         const paddedRect = padRect(rect, UI_PADDING);
 
+        const canvas = document.createElement('canvas');
         canvas.width = Math.max(1, Math.round(paddedRect.width * dpr));
         canvas.height = Math.max(1, Math.round(paddedRect.height * dpr));
 
@@ -292,12 +303,14 @@
     return lastBlob;
   }
 
+  const CAPTURE_DELAY = 120;
+
   async function onCopy() {
     if (!locked || busy) return;
     busy = 'copy';
     capturing = true;
     await tick();
-    await new Promise((r) => setTimeout(r, 120)); // wait for UI to settle
+    await new Promise((r) => setTimeout(r, CAPTURE_DELAY)); // wait for UI to settle
     try {
       const blob = await ensureBlob();
       await navigator.clipboard.write([
@@ -315,7 +328,7 @@
     busy = 'save';
     capturing = true;
     await tick();
-    await new Promise((r) => setTimeout(r, 120)); // wait for UI to settle
+    await new Promise((r) => setTimeout(r, CAPTURE_DELAY)); // wait for UI to settle
     try {
       const blob = await ensureBlob();
       const url = URL.createObjectURL(blob);
@@ -360,7 +373,8 @@
       const moved = Math.hypot(dx, dy);
 
       // Only start manual region selection after a small movement threshold.
-      if (moved >= 4) {
+      const DRAG_THRESHOLD = 4;
+      if (moved >= DRAG_THRESHOLD) {
         isDragging = true;
       }
 
@@ -393,7 +407,12 @@
     dragStart = null;
     dragRect = null;
 
-    if (rect && rect.width >= 10 && rect.height >= 10) {
+    const MIN_CAPTURE_SIZE = 10;
+    if (
+      rect &&
+      rect.width >= MIN_CAPTURE_SIZE &&
+      rect.height >= MIN_CAPTURE_SIZE
+    ) {
       lockRegionCapture(rect);
       return;
     }
