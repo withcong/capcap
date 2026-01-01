@@ -29,9 +29,9 @@
 
   let lastBlob = $state<Blob | null>(null);
   let busy = $state<'copy' | 'save' | null>(null);
-  let isCapturing = $state(false);
+  let capturing = $state(false);
 
-  const UI_PADDING = 4;
+  const UI_PADDING = 6;
 
   function clampRect(rect: {
     x: number;
@@ -295,8 +295,9 @@
   async function onCopy() {
     if (!locked || busy) return;
     busy = 'copy';
-    isCapturing = true;
+    capturing = true;
     await tick();
+    await new Promise((r) => setTimeout(r, 120)); // wait for UI to settle
     try {
       const blob = await ensureBlob();
       await navigator.clipboard.write([
@@ -305,15 +306,16 @@
     } finally {
       busy = null;
       exit();
-      isCapturing = false;
+      capturing = false;
     }
   }
 
   async function onSave() {
     if (!locked || busy) return;
     busy = 'save';
-    isCapturing = true;
+    capturing = true;
     await tick();
+    await new Promise((r) => setTimeout(r, 120)); // wait for UI to settle
     try {
       const blob = await ensureBlob();
       const url = URL.createObjectURL(blob);
@@ -325,7 +327,7 @@
     } finally {
       busy = null;
       exit();
-      isCapturing = false;
+      capturing = false;
     }
   }
 
@@ -455,6 +457,7 @@
   bind:this={overlayEl}
   class="capcap-overlay"
   class:capcap-overlay--locked={Boolean(lockedBox)}
+  class:capcap-overlay--capturing={capturing}
   tabindex="-1"
   onpointerdown={onPointerDown}
   onpointermove={onPointerMove}
@@ -490,7 +493,7 @@
     ></div>
 
     {@const r = lockedBox}
-    {#if !isCapturing}
+    {#if !capturing}
       <div
         class="capcap-menu"
         style={`left:${Math.min(window.innerWidth - 156, Math.max(12, r.x + r.width - 156))}px;top:${Math.min(window.innerHeight - 120, Math.max(12, r.y + 8))}px;`}
@@ -529,6 +532,11 @@
     cursor: default;
   }
 
+  .capcap-overlay--capturing {
+    pointer-events: none;
+    display: none;
+  }
+
   .capcap-dim {
     position: absolute;
     inset: 0;
@@ -539,7 +547,7 @@
 
   .capcap-spotlight {
     position: absolute;
-    border-radius: 10px;
+    border-radius: 8px;
     transition:
       left 160ms var(--capcap-ease, cubic-bezier(0.22, 1, 0.36, 1)),
       top 160ms var(--capcap-ease, cubic-bezier(0.22, 1, 0.36, 1)),
@@ -551,7 +559,7 @@
 
   .capcap-frame {
     position: absolute;
-    border-radius: 10px;
+    border-radius: 8px;
     border: 2px solid rgba(255, 255, 255, 0.6);
     background: rgba(255, 255, 255, 0.04);
     transition:
