@@ -511,6 +511,12 @@
       </div>
     {/if}
   {/if}
+
+  {#if !lockedBox && !capturing}
+    <div class="capcap-hint">
+      Click or drag to capture a portion of this page
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -592,6 +598,38 @@
     transition:
       transform 160ms var(--capcap-ease),
       opacity 160ms var(--capcap-ease);
+  }
+
+  .capcap-hint {
+    position: absolute;
+    left: 50%;
+    bottom: 32px;
+    transform: translateX(-50%);
+    padding: 24px 40px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.92);
+    color: rgba(0, 180, 216, 0.95);
+    border: 1px solid rgba(0, 212, 255, 0.24);
+    box-shadow:
+      0 10px 28px rgba(0, 0, 0, 0.22),
+      0 1px 0 rgba(255, 255, 255, 0.55),
+      0 0 32px rgba(0, 212, 255, 0.16);
+    backdrop-filter: blur(10px) saturate(180%);
+    pointer-events: auto;
+    cursor: default;
+    user-select: none;
+    white-space: nowrap;
+    font:
+      600 14px/1.1 system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      sans-serif;
+    transition: opacity 200ms var(--capcap-ease);
+  }
+
+  .capcap-hint:hover {
+    opacity: 0.12;
   }
 
   .capcap-btn {
