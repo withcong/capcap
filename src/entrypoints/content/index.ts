@@ -1,41 +1,40 @@
+import { mount, unmount } from 'svelte';
+
 export default defineContentScript({
   matches: ['<all_urls>'],
-  main() {
-    let root: HTMLDivElement | null = null;
+  cssInjectionMode: 'ui',
+
+  async main(ctx) {
     let app: unknown | null = null;
-    let cleanup: (() => void) | null = null;
 
-    const mountOverlay = async () => {
-      if (root || app) return;
+    const ui = await createShadowRootUi(ctx, {
+      name: 'capcap-ui',
+      position: 'overlay',
+      onMount: (container, shadow, shadowHost) => {
+        shadowHost.id = 'capcap-root';
 
-      const [{ mount, unmount }, { default: CapCapOverlay }] = await Promise.all([
-        import('svelte'),
-        import('./CapCapOverlay.svelte'),
-      ]);
-
-      root = document.createElement('div');
-      root.id = 'capcap-root';
-      document.documentElement.appendChild(root);
-
-      cleanup = () => {
-        if (app) unmount(app as never);
+        return import('./CapCapOverlay.svelte').then(({ default: CapCapOverlay }) => {
+          app = mount(CapCapOverlay, {
+            target: container,
+            props: {
+              onExit: () => ui.remove(),
+            },
+          });
+          return app;
+        });
+      },
+      onRemove: (mountedApp) => {
+        if (mountedApp) unmount(mountedApp as never);
         app = null;
-        root?.remove();
-        root = null;
-        cleanup = null;
-      };
-
-      app = mount(CapCapOverlay, {
-        target: root,
-        props: {
-          onExit: () => cleanup?.(),
-        },
-      });
-    };
+      },
+    });
 
     const toggle = () => {
-      if (root || app) return cleanup?.();
-      void mountOverlay();
+      if (app) {
+        ui.remove();
+      } else {
+        ui.mount();
+      }
     };
 
     browser.runtime.onMessage.addListener((msg) => {
