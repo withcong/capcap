@@ -10,7 +10,7 @@ export default defineContentScript({
 
       const [{ mount, unmount }, { default: CapCapOverlay }] = await Promise.all([
         import('svelte'),
-        import('./content/CapCapOverlay.svelte'),
+        import('./CapCapOverlay.svelte'),
       ]);
 
       root = document.createElement('div');
