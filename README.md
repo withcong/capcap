@@ -1,16 +1,56 @@
 # CapCap
 
-CapCap is a user-friendly browser screen shooter, which captures page with ease and precision.
+A smart screenshot extension for browsers that makes capturing specific elements and regions effortless.
 
-- Smart block detection - traverses DOM to find meaningful containers
-- Keyboard shortcut - Cmd/Ctrl+Shift+X to capture, Esc to exit capture
-- Smooth animations - cubic-bezier transitions on all overlays
-- Dim overlay - darkens page during capture mode
-- Drag selection - for custom region capture
-- Actions menu - Copy/Save/Exit
-- Works on all URLs - <all_urls> pattern
+## Features
 
+- **Smart Element Detection**: Automatically highlights meaningful elements as you hover, intelligently identifying the most appropriate container
+- **Flexible Selection**: Click to capture smart-selected elements, or drag to manually select any region
+- **Quick Actions**: Copy to clipboard or save as PNG with a single click
+- **Keyboard Shortcut**: Use `Ctrl+Shift+X` (or `Cmd+Shift+X` on Mac) to activate
+- **Cross-Browser**: Works on Chrome, Edge, and all chromium-based browsers.
 
-Tech Stack：
-- wxt
-- svelte
+## Development
+
+Install dependencies:
+
+```bash
+pnpm install
+```
+
+Run development server:
+
+```bash
+# Chrome/Edge
+pnpm run dev
+
+# Firefox
+```
+
+Build for production:
+
+```bash
+pnpm run build          # Chrome/Edge
+```
+
+Create distribution package:
+
+```bash
+pnpm run zip          # Chrome/Edge
+```
+
+Run type checking:
+
+```bash
+pnpm run check
+```
+
+## Tech Stack
+
+- **WXT** - Web Extension framework
+- **Svelte 5** - Reactive UI framework
+- **TypeScript** - Type safety
+
+## License
+
+MIT
