@@ -1,5 +1,7 @@
 # CapCap
 
+**Languages:** English | [中文](README.zh-CN.md)
+
 A smart screenshot extension for browsers that makes capturing specific elements and regions effortless.
 
 ## Features
@@ -10,41 +12,6 @@ A smart screenshot extension for browsers that makes capturing specific elements
 - **Keyboard Shortcut**: Use `Ctrl+Shift+X` (or `Cmd+Shift+X` on Mac) to activate
 - **Cross-Browser**: Works on Chrome, Edge, and all chromium-based browsers.
 
-## Development
-
-Install dependencies:
-
-```bash
-pnpm install
-```
-
-Run development server:
-
-```bash
-# Chrome/Edge
-pnpm run dev
-
-# Firefox
-```
-
-Build for production:
-
-```bash
-pnpm run build          # Chrome/Edge
-```
-
-Create distribution package:
-
-```bash
-pnpm run zip          # Chrome/Edge
-```
-
-Run type checking:
-
-```bash
-pnpm run check
-```
-
 ## Tech Stack
 
 - **WXT** - Web Extension framework
@@ -53,4 +20,4 @@ pnpm run check
 
 ## License
 
-MIT
+This project is licensed under the [MIT](LICENSE) License.

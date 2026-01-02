@@ -1,5 +1,7 @@
 # CapCap
 
+**Languages:** [English](README.md) | 中文
+
 一款智能浏览器截图扩展，让捕获特定元素和区域变得轻松自如。
 
 ## 功能特点
@@ -10,38 +12,6 @@
 - **键盘快捷键**: 使用 `Ctrl+Shift+X`（Mac 上为 `Cmd+Shift+X`）激活
 - **跨浏览器支持**: 支持 Chrome、Edge 和 所有基于 Chromium 的浏览器。
 
-## 开发
-
-安装依赖:
-
-```bash
-pnpm install
-```
-
-运行开发服务器:
-
-```bash
-# Chrome/Edge
-pnpm run dev
-
-生产构建:
-
-```bash
-pnpm run build          # Chrome/Edge
-```
-
-创建发布包:
-
-```bash
-pnpm run zip          # Chrome/Edge
-```
-
-运行类型检查:
-
-```bash
-pnpm run check
-```
-
 ## 技术栈
 
 - **WXT** - Web 扩展框架
@@ -50,4 +20,4 @@ pnpm run check
 
 ## 许可证
 
-MIT
+本项目基于 [MIT 许可证](LICENSE) 开源。
