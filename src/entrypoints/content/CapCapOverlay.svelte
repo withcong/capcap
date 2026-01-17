@@ -15,6 +15,7 @@
 
   let hoveredElement: Element | null = $state(null);
   let hoverRect: DOMRect | null = $state(null);
+  let lastHoveredElement: Element | null = $state(null);
 
   let isDragging = $state(false);
   let dragStart = $state<{ x: number; y: number } | null>(null);
@@ -54,7 +55,7 @@
 
   function padRect(
     rect: { x: number; y: number; width: number; height: number },
-    pad = UI_PADDING
+    pad = UI_PADDING,
   ) {
     return clampRect({
       x: rect.x - pad,
@@ -79,7 +80,7 @@
 
   function elementFromPointThroughOverlay(
     x: number,
-    y: number
+    y: number,
   ): Element | null {
     const els = document.elementsFromPoint(x, y);
     for (const el of els) {
@@ -112,7 +113,8 @@
   ]);
   const MEDIA_TAGS = new Set(['IMG', 'PICTURE', 'VIDEO', 'CANVAS', 'SVG']);
 
-  function scoreCandidate(el: Element, rect: DOMRect) {
+  function scoreCandidate(el: Element, depth = 0) {
+    const rect = el.getBoundingClientRect();
     const area = rect.width * rect.height;
     if (!Number.isFinite(area) || area <= 0) return -Infinity;
     if (rect.width < MIN_ELEMENT_SIZE || rect.height < MIN_ELEMENT_SIZE)
@@ -131,41 +133,37 @@
       Number.parseFloat(cs.borderLeftWidth) > 0;
 
     const tag = el.tagName;
-    const semanticBonus = SEMANTIC_TAGS.has(tag) ? 0.35 : 0;
-    const mediaBonus = tag === 'IMG' ? 0.9 : MEDIA_TAGS.has(tag) ? 0.45 : 0;
+    const semanticBonus = SEMANTIC_TAGS.has(tag) ? 0.25 : 0;
+    const mediaBonus = MEDIA_TAGS.has(tag) ? 0.7 : 0;
 
     const role = (el.getAttribute('role') || '').toLowerCase();
     const roleBonus = ['main', 'article', 'region', 'dialog'].includes(role)
-      ? 0.25
+      ? 0.2
       : 0;
-
-    const textLen = (el.textContent || '').trim().length;
-    const textBonus = Math.min(textLen / 300, 1) * 0.4;
 
     const targetRatio = 0.25;
     const ratioPenalty = Math.abs(Math.log((ratio + 1e-6) / targetRatio));
 
     let score = 1.2 - ratioPenalty;
-    score += semanticBonus + roleBonus + textBonus + mediaBonus;
+    score += semanticBonus + roleBonus + mediaBonus;
     if (hasBg) score += 0.15;
     if (hasBorder) score += 0.1;
 
     if (el === document.body || el === document.documentElement) score -= 2;
     if (ratio > 0.9) score -= 1;
 
+    const depthPenalty = depth * 0.25;
+    score -= depthPenalty;
+
     return score;
   }
 
   function pickMeaningfulContainer(start: Element): Element {
-    if (MEDIA_TAGS.has(start.tagName) && isVisible(start)) {
-      return start;
-    }
-
     let best: Element = start;
     let bestScore = -Infinity;
     let cur: Element | null = start;
 
-    const MAX_DEPTH = 12;
+    const MAX_DEPTH = 5;
     for (let depth = 0; cur && depth < MAX_DEPTH; depth++) {
       if (!isVisible(cur)) {
         cur = cur.parentElement;
@@ -173,11 +171,7 @@
       }
 
       const rect = cur.getBoundingClientRect();
-      let score = scoreCandidate(cur, rect);
-
-      if (depth === 0) {
-        score += 0.8;
-      }
+      let score = scoreCandidate(cur, depth);
 
       if (score > bestScore) {
         bestScore = score;
@@ -191,19 +185,52 @@
     return best;
   }
 
+  function isPointInMarginBox(x: number, y: number, el: Element): boolean {
+    const rect = el.getBoundingClientRect();
+    const style = window.getComputedStyle(el);
+    const marginTop = Math.max(0, Number.parseFloat(style.marginTop) || 0);
+    const marginRight = Math.max(0, Number.parseFloat(style.marginRight) || 0);
+    const marginBottom = Math.max(
+      0,
+      Number.parseFloat(style.marginBottom) || 0,
+    );
+    const marginLeft = Math.max(0, Number.parseFloat(style.marginLeft) || 0);
+
+    return (
+      x >= rect.left - marginLeft &&
+      x <= rect.right + marginRight &&
+      y >= rect.top - marginTop &&
+      y <= rect.bottom + marginBottom
+    );
+  }
+
   function updateHover(x: number, y: number) {
     const base = elementFromPointThroughOverlay(x, y);
     if (!base) {
       hoveredElement = null;
       hoverRect = null;
+      lastHoveredElement = null;
       return;
     }
 
     const candidate = pickMeaningfulContainer(base);
+
+    // Sticky logic: if new candidate is an ancestor of current element
+    // and mouse is still in current element's margin-box, keep the current highlight
+    if (
+      lastHoveredElement &&
+      candidate.contains(lastHoveredElement) &&
+      candidate !== lastHoveredElement &&
+      isPointInMarginBox(x, y, lastHoveredElement)
+    ) {
+      return;
+    }
+
     const rect = candidate.getBoundingClientRect();
 
     hoveredElement = candidate;
     hoverRect = rect;
+    lastHoveredElement = candidate;
   }
 
   function lockElementCapture(el: Element) {
@@ -236,7 +263,7 @@
 
   function cropImageFromDataUrl(
     dataUrl: string,
-    rect: { x: number; y: number; width: number; height: number }
+    rect: { x: number; y: number; width: number; height: number },
   ): Promise<Blob> {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -263,7 +290,7 @@
           0,
           0,
           canvas.width,
-          canvas.height
+          canvas.height,
         );
 
         canvas.toBlob((blob) => {
@@ -452,17 +479,17 @@
   let hoverBox = $derived(
     hoverRect && !locked && !isDragging
       ? padRect(domRectToXYWH(hoverRect), UI_PADDING)
-      : null
+      : null,
   );
   let dragBox = $derived(
-    isDragging && dragRect ? padRect(clampRect(dragRect), UI_PADDING) : null
+    isDragging && dragRect ? padRect(clampRect(dragRect), UI_PADDING) : null,
   );
   let lockedBox = $derived.by(() => {
     if (!locked) return null;
     if (locked.kind === 'element') {
       return padRect(
         domRectToXYWH(locked.element.getBoundingClientRect()),
-        UI_PADDING
+        UI_PADDING,
       );
     }
     if (locked.kind === 'region') {
