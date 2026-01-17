@@ -1,6 +1,9 @@
 <script lang="ts">
   import { tick } from 'svelte';
   import './overlay.css';
+  import DebugPanel from './DebugPanel.svelte';
+  import DebugTooltip from './DebugTooltip.svelte';
+  import { ScoreDetails } from './types';
 
   let { onExit } = $props<{ onExit?: () => void }>();
 
@@ -12,6 +15,9 @@
       };
 
   let overlayEl: HTMLDivElement | null = $state(null);
+
+  // Debug state (only populated in dev mode)
+  let debugCandidates = $state<ScoreDetails[]>([]);
 
   let hoveredElement: Element | null = $state(null);
   let hoverRect: DOMRect | null = $state(null);
@@ -113,7 +119,14 @@
   ]);
   const MEDIA_TAGS = new Set(['IMG', 'PICTURE', 'VIDEO', 'CANVAS', 'SVG']);
 
-  function scoreCandidate(el: Element, depth = 0) {
+  function getElementSelector(el: Element): string {
+    if (el.id) return `#${el.id}`;
+    const classes = Array.from(el.classList).slice(0, 3).join('.');
+    const classStr = classes ? `.${classes}` : '';
+    return `${el.tagName.toLowerCase()}${classStr}`;
+  }
+
+  function scoreCandidate(el: Element, depth = 0): number | ScoreDetails {
     const rect = el.getBoundingClientRect();
     const area = rect.width * rect.height;
     if (!Number.isFinite(area) || area <= 0) return -Infinity;
@@ -144,16 +157,49 @@
     const targetRatio = 0.25;
     const ratioPenalty = Math.abs(Math.log((ratio + 1e-6) / targetRatio));
 
-    let score = 1.2 - ratioPenalty;
-    score += semanticBonus + roleBonus + mediaBonus;
-    if (hasBg) score += 0.15;
-    if (hasBorder) score += 0.1;
-
-    if (el === document.body || el === document.documentElement) score -= 2;
-    if (ratio > 0.9) score -= 1;
-
+    const base = 1.2;
+    const bgBonus = hasBg ? 0.15 : 0;
+    const borderBonus = hasBorder ? 0.1 : 0;
+    const bodyPenalty =
+      el === document.body || el === document.documentElement ? 2 : 0;
+    const largePenalty = ratio > 0.9 ? 1 : 0;
     const depthPenalty = depth * 0.25;
-    score -= depthPenalty;
+
+    const score =
+      base -
+      ratioPenalty +
+      semanticBonus +
+      roleBonus +
+      mediaBonus +
+      bgBonus +
+      borderBonus -
+      bodyPenalty -
+      largePenalty -
+      depthPenalty;
+
+    // In dev mode, return detailed breakdown
+    if (import.meta.env.DEV) {
+      return {
+        element: el,
+        depth,
+        score,
+        breakdown: {
+          base,
+          ratioPenalty,
+          semanticBonus,
+          mediaBonus,
+          roleBonus,
+          bgBonus,
+          borderBonus,
+          bodyPenalty,
+          largePenalty,
+          depthPenalty,
+        },
+        rect,
+        tagName: el.tagName,
+        selector: getElementSelector(el),
+      };
+    }
 
     return score;
   }
@@ -163,6 +209,8 @@
     let bestScore = -Infinity;
     let cur: Element | null = start;
 
+    const candidates: ScoreDetails[] = [];
+
     const MAX_DEPTH = 5;
     for (let depth = 0; cur && depth < MAX_DEPTH; depth++) {
       if (!isVisible(cur)) {
@@ -170,8 +218,12 @@
         continue;
       }
 
-      const rect = cur.getBoundingClientRect();
-      let score = scoreCandidate(cur, depth);
+      const result = scoreCandidate(cur, depth);
+      const score = typeof result === 'number' ? result : result.score;
+
+      if (import.meta.env.DEV && typeof result !== 'number') {
+        candidates.push(result);
+      }
 
       if (score > bestScore) {
         bestScore = score;
@@ -180,6 +232,10 @@
 
       cur = cur.parentElement;
       if (!cur || cur === document.documentElement) break;
+    }
+
+    if (import.meta.env.DEV) {
+      debugCandidates = candidates.sort((a, b) => b.score - a.score);
     }
 
     return best;
@@ -586,5 +642,10 @@
     <div class="capcap-hint">
       Click or drag to capture a portion of this page
     </div>
+  {/if}
+
+  {#if import.meta.env.DEV && !isDragging && !locked}
+    <DebugTooltip {hoveredElement} {hoverBox} {debugCandidates} />
+    <DebugPanel {hoveredElement} {debugCandidates} />
   {/if}
 </div>
