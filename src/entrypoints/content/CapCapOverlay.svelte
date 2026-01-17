@@ -14,7 +14,7 @@
         rect: { x: number; y: number; width: number; height: number };
       };
 
-  let overlayEl: HTMLDivElement | null = $state(null);
+  let overlayEl: HTMLElement | null = $state(null);
 
   // Debug state (only populated in dev mode)
   let debugCandidates = $state<ScoreDetails[]>([]);
@@ -579,7 +579,7 @@
   let menuPos = $derived.by(() => (lockedBox ? menuPosition(lockedBox) : null));
 </script>
 
-<div
+<section
   bind:this={overlayEl}
   class="capcap-overlay"
   class:capcap-overlay--locked={Boolean(lockedBox)}
@@ -621,31 +621,35 @@
 
     {@const r = lockedBox}
     {#if !capturing}
-      <div
+      <menu
         class="capcap-menu"
         style={`left:${menuPos?.left}px;top:${menuPos?.top}px;`}
       >
-        <button class="capcap-btn" disabled={busy !== null} onclick={onCopy}
-          >Copy</button
-        >
-        <button class="capcap-btn" disabled={busy !== null} onclick={onSave}
-          >Save</button
-        >
-        <button class="capcap-btn" disabled={busy !== null} onclick={exit}
-          >Exit</button
-        >
-      </div>
+        <li>
+          <button class="capcap-btn" disabled={busy !== null} onclick={onCopy}
+            >Copy</button
+          >
+        </li>
+        <li>
+          <button class="capcap-btn" disabled={busy !== null} onclick={onSave}
+            >Save</button
+          >
+        </li>
+        <li>
+          <button class="capcap-btn" disabled={busy !== null} onclick={exit}
+            >Exit</button
+          >
+        </li>
+      </menu>
     {/if}
   {/if}
 
   {#if !lockedBox && !capturing}
-    <div class="capcap-hint">
-      Click or drag to capture a portion of this page
-    </div>
+    <p class="capcap-hint">Click or drag to capture a portion of this page</p>
   {/if}
 
   {#if import.meta.env.DEV && !isDragging && !locked}
     <DebugTooltip {hoveredElement} {hoverBox} {debugCandidates} />
     <DebugPanel {hoveredElement} {debugCandidates} />
   {/if}
-</div>
+</section>

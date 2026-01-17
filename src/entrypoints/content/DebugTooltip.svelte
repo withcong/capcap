@@ -33,7 +33,7 @@
 </script>
 
 {#if currentCandidate && tooltipPosition}
-  <div
+  <output
     class="debug-tooltip"
     style={`left:${tooltipPosition.left}px;top:${tooltipPosition.top}px;transform:${tooltipPosition.transform};`}
   >
@@ -41,7 +41,7 @@
     <span class="debug-score {getScoreClass(currentCandidate.score)}">
       {currentCandidate.score.toFixed(2)}
     </span>
-  </div>
+  </output>
 {/if}
 
 <style>

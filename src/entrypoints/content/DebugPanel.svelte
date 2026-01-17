@@ -81,28 +81,29 @@
   }
 </script>
 
-<!-- Debug Panel -->
-<div class="debug-panel">
-  <div class="debug-panel-header">
+<aside class="debug-panel">
+  <header class="debug-panel-header">
     <span>🐛 Debug Info</span>
-  </div>
+  </header>
 
-  <div class="debug-panel-content">
+  <main class="debug-panel-content">
     {#if currentCandidate}
-      <div class="debug-section">
-        <div class="debug-label">Current Element:</div>
-        <div class="debug-value">
-          <code>{currentCandidate.selector}</code>
-        </div>
-        <div class="debug-label">Total Score:</div>
-        <div
-          class="debug-value score-value {getScoreClass(
-            currentCandidate.score,
-          )}"
-        >
-          {currentCandidate.score.toFixed(3)}
-        </div>
-        <div class="debug-label">Score Breakdown:</div>
+      <section class="debug-section">
+        <dl>
+          <dt class="debug-label">Current Element:</dt>
+          <dd class="debug-value">
+            <code>{currentCandidate.selector}</code>
+          </dd>
+          <dt class="debug-label">Total Score:</dt>
+          <dd
+            class="debug-value score-value {getScoreClass(
+              currentCandidate.score,
+            )}"
+          >
+            {currentCandidate.score.toFixed(3)}
+          </dd>
+          <dt class="debug-label">Score Breakdown:</dt>
+        </dl>
         <div class="debug-breakdown">
           {#each getBreakdownItems(currentCandidate.breakdown) as item}
             <div class:bonus={item.isBonus} class:penalty={!item.isBonus}>
@@ -110,15 +111,15 @@
             </div>
           {/each}
         </div>
-      </div>
+      </section>
 
-      <div class="debug-section">
+      <section class="debug-section">
         <div class="debug-label">
           All Candidates ({debugCandidates.length}):
         </div>
-        <div class="debug-candidates">
+        <ul class="debug-candidates">
           {#each debugCandidates as candidate}
-            <div
+            <li
               class="debug-candidate"
               class:selected={candidate.element === hoveredElement}
             >
@@ -126,16 +127,16 @@
                 <code>{candidate.selector}</code>
                 <span class="candidate-depth">depth: {candidate.depth}</span>
               </div>
-              <div class="candidate-score {getScoreClass(candidate.score)}">
+              <span class="candidate-score {getScoreClass(candidate.score)}">
                 {candidate.score.toFixed(2)}
-              </div>
-            </div>
+              </span>
+            </li>
           {/each}
-        </div>
-      </div>
+        </ul>
+      </section>
     {/if}
-  </div>
-</div>
+  </main>
+</aside>
 
 <style>
   /* Debug Panel Styles */
@@ -146,8 +147,8 @@
     width: 360px;
     max-height: calc(100vh - 24px);
     overflow: hidden;
-    background: rgba(20, 20, 22, 0.8);
-    backdrop-filter: blur(16px) saturate(180%);
+    background: rgba(20, 20, 22, 0.75);
+    backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 12px;
     box-shadow:
@@ -287,6 +288,7 @@
     margin-top: 8px;
     max-height: 300px;
     overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .debug-candidate {
@@ -312,6 +314,7 @@
   }
 
   .candidate-selector {
+    overflow: hidden;
     flex: 1;
     min-width: 0;
     display: flex;
